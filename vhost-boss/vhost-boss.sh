@@ -15,21 +15,22 @@ use Pod::Usage;
 
 my $man = 0;
 my $help = 0;
-
-GetOptions('help|?' => \$help, man => \$man) or pod2usage(2);
-pod2usage(1) if $help;
-pod2usage(-exitval => 0, -verbose => 2) if $man;
-
 my $o_host = '';
 my $o_user = '';
 my $o_dir = '/var/web';
 my $o_templates = '/usr/share/vhost-boss/templates';
 my $o_cache = '/var/lib/vhost-boss';
-GetOptions ("host=s" => \$o_host,
-            "user=s"   => \$o_user,
-            "directory=s"  => \$o_dir,
-            "templates=s" => \$o_templates,
-            "cache" => \$o_cache);
+
+GetOptions(
+	'help|?' => \$help, man => \$man,
+        "host=s" => \$o_host,
+        "user=s"   => \$o_user,
+        "directory=s"  => \$o_dir,
+        "templates=s" => \$o_templates,
+        "cache\s" => \$o_cache
+	) or pod2usage(2);
+pod2usage(1) if $help;
+pod2usage(-exitval => 0, -verbose => 2) if $man;
 
 if ( !$o_host || !$o_user ) {
     print "Wait, I can't make a site without a domain name and a user.\n";
