@@ -1,0 +1,33 @@
+server {
+        server_name .@VHOST@;
+        root @BASEDIR@/@VHOST@/htdocs;
+        index index.html index.htm index.php;
+        access_log @BASEDIR@/logs/@VHOST@_access.log;
+        error_log @BASEDIR@/logs/@VHOST@_error.log;
+
+        if ($host != '@VHOST@' ) {
+                rewrite  ^(.*)$  http://@VHOST@$1  permanent;
+        }
+
+        location ~ \.php$ {
+                fastcgi_split_path_info ^(.+\.php)(/.+)$;
+                fastcgi_pass unix:/var/run/php5-fpm-@USER@.sock;
+                fastcgi_index index.php;
+                include fastcgi_params;
+        }
+
+        location ~ /\.ht {
+                deny all;
+        }
+
+        location = /favicon.ico {
+                log_not_found off;
+                access_log off;
+        }
+
+        location ~ /(robot|human)s.txt$ {
+                allow all;
+                log_not_found off;
+                access_log off;
+        }
+}

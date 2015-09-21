@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+# prime-filesystems
+# MIT License
+# @doublecompile
+# Simple filesystem setup of Debian-based AWS instances
+
+echo "Installing packages."
+apt-get update
+apt-get install aptitude
+aptitude install -y -q --without-recommends nginx ca-certificates \
+    python-pip \
+    php5-fpm php5-cli php5-gd php5-gmp php5-mcrypt php5-imagick \
+    php5-memcached php5-mysqlnd php5-pgsql php5-sqlite php5-curl
+
+echo "Generating DH Parameter file."
+openssl dhparam -out "/etc/ssl/dhparam.pem" 2048 2>/dev/null
+
+echo "Installing configuration."
+cp conf/nginx.conf /etc/nginx/nginx.conf
+cp conf/mime.types /etc/nginx/mime.types
+cp conf/ssl.conf /etc/nginx/conf.d/ssl.conf
+cp conf/php5-fpm_php.ini /etc/php5/fpm/php.ini
+cp conf/php5-cli_php.ini /etc/php5/cli/php.ini
+
+echo "Disabling PHP session cleanup cron job."
+sed -i 's/^/#/' /etc/cron.d/php5
+
+# All done
+echo "Everything is OK!"

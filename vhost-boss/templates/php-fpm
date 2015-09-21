@@ -1,0 +1,20 @@
+[@USER@]
+prefix = @BASEDIR@
+user = @USER@
+group = @GROUP@
+listen = /var/run/php5-fpm-$pool.sock
+listen.owner = @USER@
+listen.group = @GROUP@
+listen.mode = 0666
+pm = ondemand
+pm.max_children = 2
+pm.process_idle_timeout = 10s
+pm.max_requests = 500
+catch_workers_output = yes
+env[HOME] = @BASEDIR@
+env[TMP] = @BASEDIR@/tmp
+env[TMPDIR] = @BASEDIR@/tmp
+env[TEMP] = @BASEDIR@/tmp
+php_admin_value[open_basedir] = @BASEDIR@:/usr/share/php
+php_admin_value[upload_tmp_dir] = @BASEDIR@/tmp
+php_admin_value[disable_functions] = dl,exec,passthru,shell_exec,system,proc_open,popen,pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority
