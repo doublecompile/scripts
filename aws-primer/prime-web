@@ -1,14 +1,15 @@
 #!/bin/sh
 #
-# prime-filesystems
+# prime-web
 # MIT License
 # @doublecompile
-# Simple filesystem setup of Debian-based AWS instances
+# Installs .deb packages and initializes some config
 
 echo "Installing packages."
 apt-get update
+apt-get -y safe-upgrade
 apt-get install aptitude
-aptitude install -y -q --without-recommends nginx ca-certificates \
+aptitude install -y --without-recommends nginx ca-certificates \
     python-pip \
     php5-fpm php5-cli php5-gd php5-gmp php5-mcrypt php5-imagick \
     php5-memcached php5-mysqlnd php5-pgsql php5-sqlite php5-curl

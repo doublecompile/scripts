@@ -125,18 +125,19 @@ if(!$skip){
     `useradd -g $uid -G vhosted -u $uid -s /bin/false -M -d $homedir $user`;
     # Give the user a Diceware password
     my $secretFile = "$cachedir/secret-$user.txt";
+    my $keyFile = "$cachedir/$user.key";
     open TMPFILE, '>', $secretFile and close TMPFILE or die "File error with password container: $!";
     chmod 0600, $secretFile;
     my $rand = int(rand(3)) + 4;  # random number from 4–6
-    `./xkcd-password.py -n $rand > $secretFile`;
+    `xkcdpass -n $rand > $secretFile`;
     # Create a private/public key pair
-    `ssh-keygen -q -t rsa -b 4096 -N '' -C $user -f $user.key`;
-    `openssl rsa -des3 -in $user.key -out $user.key -passout file:$secretFile.txt`;
-    chmod 0600, "$user.key", "$user.key.pub";
-    chown $uid, $uid, "$user.key", "$user.key.pub";
+    `ssh-keygen -q -t rsa -b 4096 -N '' -C $user -f "$keyFile"`;
+    `openssl rsa -des3 -in "$keyFile" -out "$keyFile" -passout file:$secretFile`;
+    chmod 0600, $keyFile, "$keyFile.pub";
+    chown $uid, $uid, $keyFile, "$keyFile.pub";
     # Set up user's .ssh folder with public key
     mkdirAcl "$homedir/.ssh", 0700, $uid, $uid;
-    move "$user.key.pub", "$homedir/.ssh/id_rsa.pub";
+    move "$keyFile.pub", "$homedir/.ssh/id_rsa.pub";
     copy "$homedir/.ssh/id_rsa.pub", "$homedir/.ssh/authorized_keys";
 }
 
