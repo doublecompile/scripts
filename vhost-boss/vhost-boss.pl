@@ -199,8 +199,8 @@ foreach my $key (keys %tpls) {
 ######################################################################
 
 print "Restarting nginx and php-fpm...\n";
-`service php7.0-fpm reload`
-`service nginx reload`
+`service php7.0-fpm reload`;
+`service nginx reload`;
 
 print "\nIf you want SSL support on this domain, you should run...\n";
 print "letsencrypt certonly --webroot -w $vhostdir -d $vhost -d www.$vhost\n";
