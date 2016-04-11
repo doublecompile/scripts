@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 ######################################################################
-# Copyright 2008–2015 @doublecompile
+# Copyright 2008–2016 @doublecompile
 #
 # MIT License
 #
@@ -177,7 +177,7 @@ my %replace = (
 );
 my %tpls = (
         "nginx" => "/etc/nginx/sites-available/$vhost",
-	"php-fpm" => "/etc/php5/fpm/pool.d/$user.conf"
+	"php-fpm" => "/etc/php/7.0/fpm/pool.d/$user.conf"
 );
 foreach my $key (keys %tpls) {
     print "===============================================\n";
@@ -193,6 +193,18 @@ foreach my $key (keys %tpls) {
    print LOOPFILEOUT $src;
    close(LOOPFILEOUT);
 }
+
+######################################################################
+# Restart services
+######################################################################
+
+print "Restarting nginx and php-fpm...\n";
+`service php7.0-fpm reload`
+`service nginx reload`
+
+print "\nIf you want SSL support on this domain, you should run...\n";
+print "letsencrypt certonly --webroot -w $vhostdir -d $vhost -d www.$vhost\n";
+print "...and then uncomment the relevant config sections\n\n";
 
 ######################################################################
 # All done!

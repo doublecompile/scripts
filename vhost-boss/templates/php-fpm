@@ -2,7 +2,7 @@
 prefix = @BASEDIR@
 user = @USER@
 group = @GROUP@
-listen = /var/run/php5-fpm-$pool.sock
+listen = /var/run/php/php7.0-fpm-$pool.sock
 listen.owner = @USER@
 listen.group = @GROUP@
 listen.mode = 0666
