@@ -9,7 +9,7 @@ groupadd -g 3000 vhosted
 mkdir /usr/share/vhost-boss
 mkdir /var/lib/vhost-boss
 cp -r templates /usr/share/vhost-boss/templates
-cp vhost-boss.sh /usr/sbin/vhost-boss
+cp vhost-boss.pl /usr/sbin/vhost-boss
 cp logrotate-nginx.conf /etc/logrotate.d/nginx
 chmod +x /usr/sbin/vhost-boss
 
