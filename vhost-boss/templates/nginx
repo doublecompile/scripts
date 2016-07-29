@@ -1,40 +1,40 @@
 #server {
 #        listen 80;
-#        listen 443 ssl;
+#        listen 443 ssl http2;
+#        server_name www.@VHOST@;
 #        # ssl_certificate /etc/letsencrypt/live/@VHOST@/fullchain.pem;
 #        # ssl_certificate_key /etc/letsencrypt/live/@VHOST@/privkey.pem;
-#        server_name www.@VHOST@;
+#        return 301 https://@VHOST@$request_uri;
 #}
 server {
 	listen 80;
-	# listen 443 ssl;
-        # ssl_certificate /etc/letsencrypt/live/@VHOST@/fullchain.pem;
-        # ssl_certificate_key /etc/letsencrypt/live/@VHOST@/privkey.pem;
-        server_name @VHOST@;
-        root @BASEDIR@/@VHOST@/htdocs;
-        index index.html index.htm index.php;
-        access_log @BASEDIR@/logs/@VHOST@_access.log;
-        error_log @BASEDIR@/logs/@VHOST@_error.log;
+	# listen 443 ssl http2 deferred;
+	# ssl_certificate /etc/letsencrypt/live/@VHOST@/fullchain.pem;
+	# ssl_certificate_key /etc/letsencrypt/live/@VHOST@/privkey.pem;
+	server_name @VHOST@;
+	root @BASEDIR@/@VHOST@/htdocs;
+	index index.html index.htm index.php;
+	access_log @BASEDIR@/logs/@VHOST@_access.log;
+	error_log @BASEDIR@/logs/@VHOST@_error.log;
 
-        location ~ \.php$ {
-                fastcgi_split_path_info ^(.+\.php)(/.+)$;
-                fastcgi_pass unix:/var/run/php/php7.0-fpm-@USER@.sock;
-                fastcgi_index index.php;
-                include fastcgi_params;
-        }
+	location ~ \.php$ {
+		include snippets/fastcgi-php.conf;
+		# With php7.0-fpm:
+		fastcgi_pass unix:/var/run/php/php7.0-fpm-@USER@.sock;
+	}
 
-        location ~ /\.ht {
-                deny all;
-        }
+	location ~ /\.ht {
+	    deny all;
+	}
 
-        location = /favicon.ico {
-                log_not_found off;
-                access_log off;
-        }
+	location = /favicon.ico {
+	    log_not_found off;
+	    access_log off;
+	}
 
-        location ~ /(robot|human)s.txt$ {
-                allow all;
-                log_not_found off;
-                access_log off;
-        }
+	location ~ /(robot|human)s.txt$ {
+	    allow all;
+	    log_not_found off;
+	    access_log off;
+	}
 }

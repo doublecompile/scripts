@@ -1,0 +1,6 @@
+#!/bin/sh
+
+curl -L https://toolbelt.treasuredata.com/sh/install-ubuntu-xenial-td-agent2.sh | sh
+td-agent-gem install fluent-plugin-parser
+td-agent-gem install fluent-plugin-rewrite-tag-filter
+td-agent-gem install fluent-plugin-cloudwatch-logs

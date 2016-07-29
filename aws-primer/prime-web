@@ -5,24 +5,35 @@
 # @doublecompile
 # Installs .deb packages and initializes some config
 
+$myDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 echo "Installing packages."
 apt-get update
 apt-get install aptitude
 aptitude -y safe-upgrade
 aptitude install -y --without-recommends nginx ca-certificates letsencrypt \
-    python-pip python-setuptools python-wheel \
+    git-core python-pip python-setuptools python-wheel \
     php7.0-fpm php7.0-cli php7.0-gd php7.0-gmp php7.0-mcrypt php-imagick php7.0-mbstring \
     php-memcached php7.0-mysql php7.0-pgsql php7.0-sqlite3 php7.0-curl
 
 echo "Generating DH Parameter file."
 openssl dhparam -out "/etc/ssl/dhparam.pem" 2048 2>/dev/null
 
+echo "Cloning h5bp nginx repo."
+git clone https://github.com/h5bp/server-configs-nginx.git /tmp/server-configs-nginx
+
 echo "Installing configuration."
-cp conf/nginx.conf /etc/nginx/nginx.conf
-cp conf/mime.types /etc/nginx/mime.types
-cp conf/ssl.conf /etc/nginx/conf.d/ssl.conf
-cp conf/php5-fpm_php.ini /etc/php/7.0/fpm/php.ini
-cp conf/php5-cli_php.ini /etc/php/7.0/cli/php.ini
+cp $myDir/conf/nginx.conf /etc/nginx/nginx.conf
+cp /tmp/server-configs-nginx/mime.types /etc/nginx/mime.types
+sed -i '$ d' /etc/nginx/mime.types
+cat $myDir/conf/extra-mime.types >> /etc/nginx/mime.types
+echo "}" >> /etc/nginx/mime.types
+cp /tmp/server-configs-nginx/h5bp/directive-only/ssl.conf /etc/nginx/conf.d/
+echo "ssl_dhparam                /etc/ssl/dhparam.pem;" >> /etc/nginx/conf.d/ssl.conf
+cp /tmp/server-configs-nginx/h5bp/directive-only/cache-file-descriptors.conf /etc/nginx/conf.d/
+cp /tmp/server-configs-nginx/h5bp/directive-only/x-ua-compatible.conf /etc/nginx/conf.d/
+cp $myDir/conf/php5-fpm_php.ini /etc/php/7.0/fpm/php.ini
+cp $myDir/conf/php5-cli_php.ini /etc/php/7.0/cli/php.ini
 
 echo "Disabling PHP session cleanup cron job."
 sed -i 's/^/#/' /etc/cron.d/php
