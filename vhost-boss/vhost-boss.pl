@@ -55,6 +55,7 @@ sub mkdirAcl {
 
 my $basedir = $o_dir;
 my $vhost = $o_host;
+my $vhostu = $vhost =~ s/./_/r;
 my $user = $o_user;
 my $homedir = "$basedir/$user";
 my $vhostdir = "$homedir/$vhost";
@@ -78,7 +79,7 @@ if ( !-d $cachedir ) {
 
 ######################################################################
 # Find the UID
-###################################################################### 
+######################################################################
 
 print "Let's see what the UID we will use for $user is...\n";
 
@@ -108,13 +109,13 @@ print "Ahha! Looks like the magic number is $uid\n";
 
 ######################################################################
 # Create the base directory
-###################################################################### 
+######################################################################
 
 mkdirAcl $basedir, 0755, 0, 0;
 
 ######################################################################
 # Create the user and group
-###################################################################### 
+######################################################################
 
 if(!$skip){
     print "Here comes the user ($user) and the home dir ($homedir)...\n";
@@ -144,7 +145,7 @@ if(!$skip){
 
 ######################################################################
 # Create the folders beneath their home
-###################################################################### 
+######################################################################
 
 print "I shall now construct the folders for the host ($vhost)\n";
 $wwwGid = int(`id -g www-data`);
@@ -169,6 +170,7 @@ print "Adding the configuration files...\n";
 my $templatesDir = $o_templates;
 my %replace = (
         '@VHOST@' => $vhost,
+        '@VHOST@' => $vhostu,
         '@BASEDIR@' => $homedir,
         '@USER@' => $user,
         '@GROUP@' => $user,

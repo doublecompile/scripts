@@ -1,0 +1,91 @@
+#!/bin/sh
+#
+# prime-nginx-php
+# MIT License
+# @doublecompile
+# Primes an Ubuntu Xenial AWS instance to include nginx and PHP-FPM
+
+# Add noatime flag to root filesystem
+sed -i "s/defaults,discard/defaults,discard,noatime/g" /etc/fstab
+
+# Make /tmp in-memory with no exec privileges
+echo "tmpfs   /tmp    tmpfs   nodev,nosuid,noexec     0 0" >> /etc/fstab
+# Make apt remount /tmp when installing packages
+echo "DPkg::Pre-Invoke{\"mount -o remount,exec /tmp\";};" > /etc/apt/apt.conf.d/17remount
+echo "DPkg::Post-Invoke {\"mount -o remount /tmp\";};" >> /etc/apt/apt.conf.d/17remount
+mount /tmp
+
+echo "Installing packages."
+apt-get update
+apt-get install -y --no-install-recommends aptitude language-pack-en
+aptitude remove -y ubuntu-server mdadm open-iscsi sosreport vlan lxcfs \
+    lxc lxc-common lxc-templates lxc1 python3-lxc liblxc1 lxd lxd-client lvm2 \
+    ifenslave cloud-initramfs-copymods cloud-initramfs-dyn-netconf \
+    bcache-tools xfsprogs postfix
+aptitude -y safe-upgrade
+aptitude install -y --without-recommends nginx ca-certificates letsencrypt \
+    git-core python-pip python-setuptools python-wheel \
+    php7.0-fpm php7.0-cli php7.0-gd php7.0-gmp php7.0-mcrypt php-imagick php7.0-mbstring \
+    php-memcached php7.0-mysql php7.0-pgsql php7.0-sqlite3 php7.0-curl
+
+echo "Generating DH Parameter file."
+openssl dhparam -out "/etc/ssl/dhparam.pem" 2048 2>/dev/null
+
+echo "Cloning h5bp nginx repo."
+git clone https://github.com/h5bp/server-configs-nginx.git /tmp/git/server-configs-nginx
+cp -r /tmp/git/server-configs-nginx/h5bp /etc/nginx/h5bp
+
+echo "Configuring nginx."
+cp /tmp/git/server-configs-nginx/nginx.conf /etc/nginx/nginx.conf
+sed -i "s/error_log  logs\/error/error_log  \/var\/log\/nginx\/error/" /etc/nginx/nginx.conf
+sed -i "s/access_log logs\/access/access_log  \/var\/log\/nginx\/access/" /etc/nginx/nginx.conf
+sed -i "s/user www www/user www-data www-data/" /etc/nginx/nginx.conf
+sed -i "s/keepalive_timeout 20s;/#keepalive_timeout 20s;\n    types_hash_max_size 2048;/" /etc/nginx/nginx.conf
+
+cp /tmp/git/server-configs-nginx/mime.types /etc/nginx/mime.types
+sed -i '$ d' /etc/nginx/mime.types
+cat << EOF >> /etc/nginx/mime.types
+    application/vnd.oasis.opendocument.chart                   odc;
+    application/vnd.oasis.opendocument.chart-template          otc;
+    application/vnd.oasis.opendocument.database                odb;
+    application/vnd.oasis.opendocument.formula                 odf;
+    application/vnd.oasis.opendocument.formula-template       odft;
+    application/vnd.oasis.opendocument.graphics                odg;
+    application/vnd.oasis.opendocument.graphics-template       otg;
+    application/vnd.oasis.opendocument.image                   odi;
+    application/vnd.oasis.opendocument.image-template          oti;
+    application/vnd.oasis.opendocument.presentation            odp;
+    application/vnd.oasis.opendocument.presentation-template   otp;
+    application/vnd.oasis.opendocument.spreadsheet             ods;
+    application/vnd.oasis.opendocument.spreadsheet-template    ots;
+    application/vnd.oasis.opendocument.text                    odt;
+    application/vnd.oasis.opendocument.text-master             otm;
+    application/vnd.oasis.opendocument.text-template           ott;
+    application/vnd.oasis.opendocument.text-web                oth;
+    application/vnd.openofficeorg.extension                    oxt;
+EOF
+echo "}" >> /etc/nginx/mime.types
+
+echo "ssl_dhparam                /etc/ssl/dhparam.pem;" >> /etc/nginx/h5bp/directive-only/ssl.conf
+sed -i 's/#ssl_buffer_size/ssl_buffer_size/' /etc/nginx/h5bp/directive-only/ssl.conf
+cp /tmp/git/server-configs-nginx/sites-available/no-default /etc/nginx/sites-available
+cp /tmp/git/server-configs-nginx/sites-available/ssl.no-default /etc/nginx/sites-available
+ln -s /etc/nginx/sites-available/no-default /etc/nginx/sites-enabled/no-default
+ln -s /etc/nginx/sites-available/ssl.no-default /etc/nginx/sites-enabled/no-default-ssl
+
+echo "Configuring PHP."
+git clone https://gist.github.com/a1152525a484fdaa79b364327449e5db.git /tmp/git/php-cli
+cp /tmp/git/php-cli/php.ini /etc/php/7.0/cli/php.ini
+git clone https://gist.github.com/e3b3d77a171a98adb9f0f6db2d8f6059.git /tmp/git/php-fpm
+cp /tmp/git/php-fpm/php.ini /etc/php/7.0/fpm/php.ini
+
+echo "Disabling PHP session cleanup cron job."
+sed -i 's/^/#/' /etc/cron.d/php
+
+rm -r /tmp/git/
+
+service php7.0-fpm restart
+service nginx restart
+
+# All done
+echo "Everything is OK!"
