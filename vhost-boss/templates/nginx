@@ -1,11 +1,16 @@
 #server {
-#        listen 80;
-#        listen 443 ssl http2;
-#        server_name www.@VHOST@;
-#        # include h5bp/directive-only/ssl.conf;
-#        # ssl_certificate /etc/letsencrypt/live/@VHOST@/fullchain.pem;
-#        # ssl_certificate_key /etc/letsencrypt/live/@VHOST@/privkey.pem;
-#        return 301 https://@VHOST@$request_uri;
+#    listen 80;
+#    # listen 443 ssl http2;
+#    server_name www.@VHOST@;
+#    # include h5bp/directive-only/ssl.conf;
+#    # ssl_certificate /etc/letsencrypt/live/@VHOST@/fullchain.pem;
+#    # ssl_certificate_key /etc/letsencrypt/live/@VHOST@/privkey.pem;
+#    return 301 https://@VHOST@$request_uri;
+#}
+#server {
+#    listen 80 deferred;
+#    server_name @VHOST@;
+#    return 301 https://@VHOST@$request_uri;
 #}
 server {
     listen 80 deferred;
