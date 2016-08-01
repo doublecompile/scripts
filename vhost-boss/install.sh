@@ -12,5 +12,6 @@ cp -r templates /usr/share/vhost-boss/templates
 cp vhost-boss.pl /usr/sbin/vhost-boss
 cp logrotate-nginx.conf /etc/logrotate.d/nginx
 chmod +x /usr/sbin/vhost-boss
+cp -r nginx-recipes /etc/nginx/vhost-boss-recipes
 
 echo "Everything is OK!";

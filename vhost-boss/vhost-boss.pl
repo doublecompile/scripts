@@ -17,18 +17,21 @@ my $man = 0;
 my $help = 0;
 my $o_host = '';
 my $o_user = '';
+my $o_syslog = false;
 my $o_dir = '/var/web';
 my $o_templates = '/usr/share/vhost-boss/templates';
 my $o_cache = '/var/lib/vhost-boss';
 
 GetOptions(
-	'help|?' => \$help, man => \$man,
-        "host=s" => \$o_host,
-        "user=s"   => \$o_user,
-        "directory=s"  => \$o_dir,
-        "templates=s" => \$o_templates,
-        "cache\s" => \$o_cache
-	) or pod2usage(2);
+        'help|?' => \$help, man => \$man,
+        "host|h=s" => \$o_host,
+        "user|u=s" => \$o_user,
+        "syslog" => \$o_syslog,
+        "recipe=s" => \$o_recipe,
+        "directory|d=s"  => \$o_dir,
+        "templates|t=s" => \$o_templates,
+        "cache|c=s" => \$o_cache
+    ) or pod2usage(2);
 pod2usage(1) if $help;
 pod2usage(-exitval => 0, -verbose => 2) if $man;
 
@@ -55,7 +58,7 @@ sub mkdirAcl {
 
 my $basedir = $o_dir;
 my $vhost = $o_host;
-my $vhostu = $vhost =~ s/./_/r;
+my $vhostu = $vhost =~ s/\./_/gr;
 my $user = $o_user;
 my $homedir = "$basedir/$user";
 my $vhostdir = "$homedir/$vhost";
@@ -170,7 +173,7 @@ print "Adding the configuration files...\n";
 my $templatesDir = $o_templates;
 my %replace = (
         '@VHOST@' => $vhost,
-        '@VHOST@' => $vhostu,
+        '@VHOSTU@' => $vhostu,
         '@BASEDIR@' => $homedir,
         '@USER@' => $user,
         '@GROUP@' => $user,
@@ -179,7 +182,7 @@ my %replace = (
 );
 my %tpls = (
         "nginx" => "/etc/nginx/sites-available/$vhost",
-	"php-fpm" => "/etc/php/7.0/fpm/pool.d/$user.conf"
+        "php-fpm" => "/etc/php/7.0/fpm/pool.d/$user.conf"
 );
 foreach my $key (keys %tpls) {
     print "===============================================\n";
@@ -189,11 +192,21 @@ foreach my $key (keys %tpls) {
     my $src = <LOOPFILE>;
     foreach my $holder (keys %replace) {
         $src =~ s/$holder/$replace{$holder}/g;
-   }
-   print "Writing $tpls{$key}...\n";
-   open(LOOPFILEOUT, ">$tpls{$key}") or die("Could not write template $tpls{$key}");
-   print LOOPFILEOUT $src;
-   close(LOOPFILEOUT);
+    }
+    if ($key eq 'nginx') {
+        if ($o_recipe ne "") {
+            $src =~ s/#recipes/include vhost-boss-recipes\/$o_recipe.conf/;
+        }
+        if ($o_syslog) {
+            $src =~ s/#access_log syslog/access_log syslog/g;
+            $src =~ s/access_log $homedir/#access_log $homedir/g;
+        }
+    }
+
+    print "Writing $tpls{$key}...\n";
+    open(LOOPFILEOUT, ">$tpls{$key}") or die("Could not write template $tpls{$key}");
+    print LOOPFILEOUT $src;
+    close(LOOPFILEOUT);
 }
 
 ######################################################################
@@ -205,7 +218,7 @@ print "Restarting nginx and php-fpm...\n";
 `service nginx reload`;
 
 print "\nIf you want SSL support on this domain, you should run...\n";
-print "letsencrypt certonly --webroot -w $vhostdir -d $vhost -d www.$vhost\n";
+print "letsencrypt certonly --webroot -w $vhostdir/htdocs -d $vhost -d www.$vhost\n";
 print "...and then uncomment the relevant config sections\n\n";
 
 ######################################################################
@@ -229,6 +242,8 @@ vhost-boss [options]
    --man                   full documentation
    --host|-h               hostname of virtual site
    --user|-u               username for vhost
+   --syslog                tells nginx to use syslog instead of a file
+   --recipe                tells nginx to use a configuration recipe
    --directory|-d          root directory for vhosts
    --cache|-c              directory for caching output
    --templates|-t          directory for templates
@@ -252,6 +267,16 @@ Sets the host name for the virtual host. (e.g. example.com)
 =item B<--user|-u>
 
 Sets the name of the user account that will run the vhost.
+
+=item B<--syslog>
+
+Optional. Tells nginx to send all log entries to syslog instead of
+file-based logging. Default is false.
+
+=item B<--recipe>
+
+Optional. Specifies a recipe to add to nginx. Currently we have 'drupal' and
+'mediawiki' recipes.
 
 =item B<--directory|-d>
 
