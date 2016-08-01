@@ -17,7 +17,8 @@ my $man = 0;
 my $help = 0;
 my $o_host = '';
 my $o_user = '';
-my $o_syslog = false;
+my $o_syslog = 0;
+my $o_recipe = '';
 my $o_dir = '/var/web';
 my $o_templates = '/usr/share/vhost-boss/templates';
 my $o_cache = '/var/lib/vhost-boss';
@@ -198,8 +199,8 @@ foreach my $key (keys %tpls) {
             $src =~ s/#recipes/include vhost-boss-recipes\/$o_recipe.conf/;
         }
         if ($o_syslog) {
-            $src =~ s/#access_log syslog/access_log syslog/g;
-            $src =~ s/access_log $homedir/#access_log $homedir/g;
+            $src =~ s/#(access|error)_log syslog/$1_log syslog/g;
+            $src =~ s/(access|error)_log $homedir/#$1_log $homedir/g;
         }
     }
 
