@@ -19,4 +19,5 @@ php_admin_value[open_basedir] = @BASEDIR@:/usr/share/php
 php_admin_value[error_log] = @BASEDIR@/logs/php.log
 ;php_admin_value[error_log] = syslog
 php_admin_value[upload_tmp_dir] = @BASEDIR@/tmp
+php_admin_value[sys_temp_dir] = @BASEDIR@/tmp
 php_admin_value[disable_functions] = dl,exec,passthru,shell_exec,system,proc_open,popen,pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority
